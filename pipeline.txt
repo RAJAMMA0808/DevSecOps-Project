@@ -22,8 +22,8 @@ pipeline{
         stage("Sonarqube Analysis "){
             steps{
                 withSonarQubeEnv('sonar-server') {
-                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=movies \
-                    -Dsonar.projectKey=movies '''
+                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Netflix \
+                    -Dsonar.projectKey=Netflix '''
                 }
             }
         }
@@ -50,25 +50,27 @@ pipeline{
                 sh "trivy fs . > trivyfs.txt"
             }
         }
+        
         stage("Docker Build & Push"){
             steps{
                 script{
                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
-                       sh "docker build --build-arg TMDB_V3_API_KEY=8f0430b95f7fd197be2a65ba4f53230d -t movies ."
-                       sh "docker tag movies raji0808/movies:latest "
-                       sh "docker push raji0808/movies:latest "
+                       sh "docker build --build-arg TMDB_V3_API_KEY=8f0430b95f7fd197be2a65ba4f53230d -t Netflix ."
+                       sh "docker tag Netflix raji0808/Netflix:latest "
+                       sh "docker push raji0808/Netflix:latest "
                     }
                 }
             }
         }
         stage("TRIVY"){
             steps{
-                sh "trivy image raji0808/movies:latest > trivyimage.txt" 
+                sh "trivy image raji0808/Netflix:latest > trivyimage.txt" 
             }
         }
+        
         stage('Deploy to container'){
             steps{
-                sh 'docker run -d -p 8081:80 raji0808/movies:latest'
+                sh 'docker run -d -p 8081:80 raji0808/Netflix:latest'
             }
         }
     }
@@ -79,8 +81,10 @@ pipeline{
             body: "Project: ${env.JOB_NAME}<br/>" +
                 "Build Number: ${env.BUILD_NUMBER}<br/>" +
                 "URL: ${env.BUILD_URL}<br/>",
-            to: 'dharmaraj2126@gmail.com',                                
+            to: 'bhukyadharmaraj@gmail.com',                                
             attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
         }
     }
 }
+ 
+    
